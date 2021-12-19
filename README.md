@@ -1,5 +1,5 @@
 # AppCrashMonitor
-Android APP Crash 防护
+Android APP Crash 防护，核心方法也封装成lib库：CrashCover
 
 ## 背景
 很多场景下由于一些微不足道的bug导致app崩溃很可惜，Android 系统默认的异常后直接杀进程机制简单粗暴，但很多时候让app崩溃其实也并不能解决问题，同时造成的用户体验非常不好。
