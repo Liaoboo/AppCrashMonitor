@@ -30,7 +30,7 @@ Handler(Looper.getMainLooper()).post {
 ```
 ## 核心原理简述
 主要是利用Android的Looper机制（进行偷梁换柱）。
-![](https://github.com/Liaoboo/AppCrashMonitor/blob/main/img_folder/img2.jpeg)
+![](https://github.com/Liaoboo/AppCrashMonitor/blob/main/img_folder/img1.jpeg)
 
 ## 拦截后处理
 追溯Exception的堆栈，遍历className，销毁匹配到靠近栈顶端的Activiyt，如果没找到则关闭top的Activity（因为多数情况下是top的Activity任务造成的）；
@@ -59,6 +59,6 @@ private fun finishExceptionActivity(e: Throwable): Boolean {
 }
 ```
 ##目前库的处理流程如下：
-![考虑场景：如果没有找到Activity场景，或者出错，那就执行重启或者杀进程策略，避免因为错误影响其他业务流程照成错误。](https://github.com/Liaoboo/AppCrashMonitor/blob/main/img_folder/img1.jpeg)
+![考虑场景：如果没有找到Activity场景，或者出错，那就执行重启或者杀进程策略，避免因为错误影响其他业务流程照成错误。](https://github.com/Liaoboo/AppCrashMonitor/blob/main/img_folder/img2.jpeg)
 
 
