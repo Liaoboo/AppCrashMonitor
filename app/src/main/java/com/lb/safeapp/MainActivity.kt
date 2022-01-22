@@ -4,7 +4,10 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import com.lb.wrench.CrashKeepAlive
+import java.lang.NullPointerException
 
+@CrashKeepAlive
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -13,6 +16,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun click(v: View) {
-        startActivity(Intent(this,ExceptionActivity::class.java))
+        if (v.id == R.id.btn_crash) {
+            throw NullPointerException()
+        } else {
+            startActivity(Intent(this, ExceptionActivity::class.java))
+        }
     }
 }

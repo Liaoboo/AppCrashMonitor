@@ -73,7 +73,7 @@ enum class CrashMonitor {
 
     private fun finishExceptionActivity(e: Throwable): Boolean {
         val elements = e.stackTrace
-        var isFindAndFinish = false
+        var isFindUI = false
         for (element in elements) {
             val cls = Class.forName(elements[0].className)
             if (Activity::class.java.isAssignableFrom(cls)) {
@@ -81,21 +81,28 @@ enum class CrashMonitor {
                 val activities: List<Activity> = lifecycleImpl.getActivityList()
                 for (activity in activities) {
                     if (activity.javaClass == cls) {
-                        activity.finish()
-                        activity.overridePendingTransition(0, 0)
-                        isFindAndFinish = true
+                        if (!cls.isAnnotationPresent(CrashKeepAlive::class.java)) {
+                            activity.finish()
+                            activity.overridePendingTransition(0, 0)
+                        }
+                        isFindUI = true
                     }
                 }
                 break
             }
         }
 
-        if (!isFindAndFinish && lifecycleImpl.getTopActivity() != null) {
-            lifecycleImpl.getTopActivity()?.finish()
-            isFindAndFinish = true
+        if (!isFindUI) {
+            val activity = lifecycleImpl.getTopActivity()
+            if (activity != null) {
+                if (!activity.javaClass.isAnnotationPresent(CrashKeepAlive::class.java)) {
+                    activity.finish()
+                }
+            }
+            isFindUI = true
         }
 
-        return isFindAndFinish
+        return isFindUI
     }
 
     private fun killProcess() {
@@ -119,6 +126,6 @@ enum class CrashMonitor {
         if (!isShowLog) {
             return
         }
-        Log.d(javaClass.simpleName, msg, e)
+        Log.e(javaClass.simpleName, msg, e)
     }
 }
