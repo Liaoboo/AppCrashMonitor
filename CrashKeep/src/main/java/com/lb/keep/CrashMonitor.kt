@@ -18,13 +18,11 @@ enum class CrashMonitor {
 
     private var isShowLog: Boolean = true
     private lateinit var lifecycleImpl: ActivityLifecycleImpl
-    private lateinit var context: Context
 
     fun init(app: Application?, handlerException: IHandlerException?): CrashMonitor {
         if (app != null) {
             lifecycleImpl = ActivityLifecycleImpl(app)
-            context = app
-            safeMode(handlerException)
+            safeMode(app, handlerException)
         }
 
         return INSTANCE
@@ -37,7 +35,7 @@ enum class CrashMonitor {
     /**
      * 开启保护模式
      */
-    private fun safeMode(iHandlerException: IHandlerException?) {
+    private fun safeMode(context: Context, iHandlerException: IHandlerException?) {
         Handler(Looper.getMainLooper()).post {
             while (true) {
                 try {
@@ -47,7 +45,10 @@ enum class CrashMonitor {
                     var hasDone = true
                     try {
                         if (iHandlerException == null || !iHandlerException.handlerException(e)) {
-                            hasDone = finishExceptionActivity(e)
+                            hasDone = finishStackTraceExceptionActivity(e)
+                            if (!hasDone) {
+                                hasDone = finishInitExceptionActivity(e)
+                            }
                         }
                     } catch (e: Exception) {
                         hasDone = false
@@ -57,13 +58,8 @@ enum class CrashMonitor {
                             if (iHandlerException != null && iHandlerException.notFindOrFail(e)) {
                                 break
                             }
-                            try {
-                                relaunchApp()
-                            } catch (e: Exception) {
-                                log("safeMode() relaunchApp() -> Exception() :${e.message}")
-                                killProcess()
-                            }
 
+                            relaunchApp(context, e)
                         }
                     }
                 }
@@ -71,13 +67,12 @@ enum class CrashMonitor {
         }
     }
 
-    private fun finishExceptionActivity(e: Throwable): Boolean {
-        val elements = e.stackTrace
-        var isFindUI = false
+    private fun finishStackTraceExceptionActivity(throwable: Throwable): Boolean {
+        val elements = throwable.stackTrace
         for (element in elements) {
-            val cls = Class.forName(elements[0].className)
+            val cls = Class.forName(element.className)
             if (Activity::class.java.isAssignableFrom(cls)) {
-                log("finishExceptionActivity() finish activity name: ${elements[0].className}")
+                log("finishExceptionActivity() finish activity name: ${element.className}")
                 val activities: List<Activity> = lifecycleImpl.getActivityList()
                 for (activity in activities) {
                     if (activity.javaClass == cls) {
@@ -85,24 +80,60 @@ enum class CrashMonitor {
                             activity.finish()
                             activity.overridePendingTransition(0, 0)
                         }
-                        isFindUI = true
+                        return true
                     }
                 }
+            }
+        }
+
+        return false
+    }
+
+    private fun finishInitExceptionActivity(throwable: Throwable): Boolean {
+        var isInitError = false
+        val elements = throwable.stackTrace
+        for (element in elements) {
+            if (element.fileName == "ActivityThread.java" && element.methodName == "performLaunchActivity") {
+                isInitError = true
                 break
             }
         }
 
-        if (!isFindUI) {
-            val activity = lifecycleImpl.getTopActivity()
-            if (activity != null) {
-                if (!activity.javaClass.isAnnotationPresent(CrashKeepAlive::class.java)) {
-                    activity.finish()
-                }
-            }
-            isFindUI = true
+        if (isInitError && throwable.message?.startsWith("Unable to instantiate activity") == true) {
+            return false
         }
 
-        return isFindUI
+        if (isInitError && throwable.message?.startsWith("Unable to start activity") == true) {
+            throwable.message?.let {
+                val start = it.indexOf("ComponentInfo")
+                if (start != -1) {
+                    val errorComponentName = it.substring(start, it.indexOf(": "))
+                    for (activity in lifecycleImpl.getActivityList()) {
+                        if (errorComponentName == activity.componentName.toString()) {
+                            activity.finish()
+                            activity.overridePendingTransition(0, 0)
+                            return true
+                        }
+                    }
+
+                }
+
+            }
+            return false
+        }
+
+        finishTopActivity()
+        return true
+    }
+
+    private fun finishTopActivity() {
+        val activity = lifecycleImpl.getTopActivity()
+        if (activity != null) {
+            if (!activity.javaClass.isAnnotationPresent(CrashKeepAlive::class.java)) {
+                activity.finish()
+                activity.overridePendingTransition(0, 0)
+            }
+        }
     }
 
     private fun killProcess() {
@@ -110,15 +141,26 @@ enum class CrashMonitor {
         exitProcess(10)
     }
 
-    private fun relaunchApp() {
+    fun relaunchApp(context: Context, throwable: Throwable?) {
         Handler(Looper.getMainLooper()).postDelayed({
-            val intent =
-                context.packageManager.getLaunchIntentForPackage(context.applicationContext.packageName)
-            intent?.addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK
-                        or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            )
-            context.startActivity(intent)
+            try {
+                val intent =
+                    context.packageManager.getLaunchIntentForPackage(context.applicationContext.packageName)
+                intent?.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+                            or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                )
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                if (throwable != null) {
+                    throw Exception(throwable)
+                } else {
+                    killProcess()
+                }
+            }
+
         }, 100)
     }
 

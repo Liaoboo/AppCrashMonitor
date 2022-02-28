@@ -17,6 +17,10 @@ class ActivityLifecycleImpl(sApplication: Application) :
         sApplication.registerActivityLifecycleCallbacks(this)
     }
 
+    override fun onActivityPreCreated(activity: Activity, savedInstanceState: Bundle?) {
+        setTopActivity(activity)
+    }
+
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         setTopActivity(activity)
     }
@@ -29,11 +33,11 @@ class ActivityLifecycleImpl(sApplication: Application) :
         setTopActivity(activity)
     }
 
-    override fun onActivityPaused(activity: Activity) { /**/
+    override fun onActivityPaused(activity: Activity) {
     }
 
     override fun onActivityStopped(activity: Activity) {}
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) { /**/
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
     }
 
     override fun onActivityDestroyed(activity: Activity) {
@@ -41,19 +45,31 @@ class ActivityLifecycleImpl(sApplication: Application) :
     }
 
     private fun setTopActivity(activity: Activity) {
+        if (!mActivityList.isEmpty() && mActivityList.first == activity) {
+            return
+        }
         if (mActivityList.contains(activity)) {
-            if (mActivityList.last != activity) {
+            if (mActivityList.first != activity) {
                 mActivityList.remove(activity)
-                mActivityList.addLast(activity)
+                mActivityList.addFirst(activity)
             }
         } else {
-            mActivityList.addLast(activity)
+            mActivityList.addFirst(activity)
         }
+    }
+
+    private fun getSameActivity(currentActivity: Activity): Activity? {
+        for (activity in mActivityList) {
+            if (activity.javaClass.simpleName == currentActivity.javaClass.simpleName) {
+                return activity
+            }
+        }
+        return null
     }
 
     fun getTopActivity(): Activity? {
         if (!mActivityList.isEmpty()) {
-            return mActivityList.last
+            return mActivityList.first
         }
         return null
     }

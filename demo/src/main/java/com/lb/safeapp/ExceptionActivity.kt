@@ -8,7 +8,7 @@ import java.lang.NullPointerException
 /**
  * Created by Liaobo
  */
-class ExceptionActivity : AppCompatActivity() {
+class ExceptionActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val btn = Button(this);
