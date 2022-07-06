@@ -34,7 +34,8 @@ Handler(Looper.getMainLooper()).post {
 
 ## 拦截后处理
 追溯Exception的堆栈，遍历className，销毁匹配到靠近栈顶端的Activity，如果没找到则关闭top的Activity（因为多数情况下是top的Activity任务造成的）；
-注意：从Activity创建到onCreate()这段时间的生命周期中如果出现异常，这个时候去保护就会存在黑屏的问题，这个时候应该
+
+注意：从Activity创建到onCreate()这段时间的生命周期中如果出现异常，这个时候去保护就会存在黑屏的问题，应该单独处理这种场景。
 ``` 
 private fun finishExceptionActivity(e: Throwable): Boolean {
     ...
