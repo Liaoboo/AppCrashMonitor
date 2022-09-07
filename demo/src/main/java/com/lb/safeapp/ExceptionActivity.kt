@@ -2,13 +2,15 @@ package com.lb.safeapp
 
 import android.os.Bundle
 import android.widget.Button
-import androidx.appcompat.app.AppCompatActivity
-import java.lang.NullPointerException
 
 /**
  * Created by Liaobo
  */
 class ExceptionActivity : BaseActivity() {
+    init {
+        throw NullPointerException("我是一个异常")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val btn = Button(this);

@@ -3,6 +3,7 @@ package com.lb.safeapp
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import com.lb.keep.CrashKeepAlive
 import com.lb.keep.CrashMonitor

@@ -19,7 +19,9 @@ class MyApp : Application() {
         var topAct: Activity? = null
     }
 
-    init {
+    override fun onCreate() {
+        super.onCreate()
+
         CrashMonitor.INSTANCE.init(this, object : IHandlerException {
 
             override fun handlerException(e: Throwable): Boolean {
@@ -41,7 +43,7 @@ class MyApp : Application() {
                         Toast.makeText(this@MyApp, "程序运行出错啦！", Toast.LENGTH_SHORT).show()
                     }
 
-                }, 260)
+                }, 600)
 
                 //可上传错误日志等
                 return false

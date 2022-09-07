@@ -54,6 +54,7 @@ enum class CrashMonitor {
                         hasDone = false
                         log("safeMode() Catch exception() -> Exception() :${e.message}")
                     } finally {
+                        log("hasDone:$hasDone")
                         if (!hasDone) {
                             if (iHandlerException != null && iHandlerException.notFindOrFail(e)) {
                                 break
@@ -100,7 +101,8 @@ enum class CrashMonitor {
         }
 
         if (isInitError && throwable.message?.startsWith("Unable to instantiate activity") == true) {
-            return false
+            goBack()
+            return true
         }
 
         if (isInitError && throwable.message?.startsWith("Unable to start activity") == true) {
@@ -124,6 +126,19 @@ enum class CrashMonitor {
 
         finishTopActivity()
         return true
+    }
+
+    private fun goBack() {
+        val activity = lifecycleImpl.getTopActivity()
+        if (activity != null) {
+            val intent = Intent(activity, activity.javaClass)
+            intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+                        or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            )
+            activity.startActivity(intent)
+        }
     }
 
     private fun finishTopActivity() {
