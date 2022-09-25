@@ -35,30 +35,33 @@ Handler(Looper.getMainLooper()).post {
 ## 拦截后处理
 追溯Exception的堆栈，遍历className，销毁匹配到靠近栈顶端的Activity，如果没找到则关闭top的Activity（因为多数情况下是top的Activity任务造成的）；
 
-注意：从Activity创建到onCreate()这段时间的生命周期中如果出现异常，这个时候去保护就会存在黑屏的问题，应该单独处理这种场景。
 ``` 
-private fun finishExceptionActivity(e: Throwable): Boolean {
+private fun finishStackTraceExceptionActivity(e: Throwable): Boolean {
     ...
     
     for (element in elements) {
         val cls = Class.forName(elements[0].className)
         if (Activity::class.java.isAssignableFrom(cls)) {
-            val activities: List<Activity> = Utils.getActivityList()
+            val activities: List<Activity> = lifecycleImpl.getActivityList()
             for (activity in activities) {
                 if (activity.javaClass == cls) {
                     activity.finish()
                     activity.overridePendingTransition(0, 0)
-                    isFindAndFinish = true
+                    return true
                 }
             }
-            break
+            
         }
     }
 
     ...
 
-    return isFindAndFinish
+    return false
 }
+```
+注意：从Activity创建到onCreate()这段时间的生命周期中如果出现异常，这个时候去保护就会存在黑屏的问题，应该单独处理这种场景。
+```
+private fun finishInitExceptionActivity(throwable: Throwable): Boolean { ... }
 ```
 ##目前库的处理流程如下：
 ![考虑场景：如果没有找到Activity场景，或者出错，那就执行重启或者杀进程策略，避免因为错误影响其他业务流程照成错误。](https://github.com/Liaoboo/AppCrashMonitor/blob/main/img_folder/img2.jpeg)

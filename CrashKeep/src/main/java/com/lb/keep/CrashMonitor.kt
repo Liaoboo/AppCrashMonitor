@@ -73,7 +73,7 @@ enum class CrashMonitor {
         for (element in elements) {
             val cls = Class.forName(element.className)
             if (Activity::class.java.isAssignableFrom(cls)) {
-                log("finishExceptionActivity() finish activity name: ${element.className}")
+                log("finishStackTraceExceptionActivity() finish activity name: ${element.className}")
                 val activities: List<Activity> = lifecycleImpl.getActivityList()
                 for (activity in activities) {
                     if (activity.javaClass == cls) {
