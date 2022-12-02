@@ -1,5 +1,5 @@
 # AppCrashMonitor
-Android APP Crash 防护，核心方法也封装成lib库：CrashCover
+Android APP Crash 防护，核心方法也封装成lib库：CrashKeep
 
 ## 背景
 很多场景下由于一些微不足道的bug导致app崩溃很可惜，Android 系统默认的异常后直接杀进程机制简单粗暴，但很多时候让app崩溃其实也并不能解决问题，同时造成的用户体验非常不好。
@@ -64,6 +64,6 @@ private fun finishStackTraceExceptionActivity(e: Throwable): Boolean {
 private fun finishInitExceptionActivity(throwable: Throwable): Boolean { ... }
 ```
 ##目前库的处理流程如下：
-![考虑场景：如果没有找到Activity场景，或者出错，那就执行重启或者杀进程策略，避免因为错误影响其他业务流程照成错误。](https://github.com/Liaoboo/AppCrashMonitor/blob/main/img_folder/img2.jpeg)
+![考虑场景：如果没有找到Activity场景，或者出错，那就执行重启或者杀进程策略，避免因为错误影响其他业务流程造成错误。](https://github.com/Liaoboo/AppCrashMonitor/blob/main/img_folder/img2.jpeg)
 
 
