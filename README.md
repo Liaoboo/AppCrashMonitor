@@ -29,7 +29,7 @@ Handler(Looper.getMainLooper()).post {
 }
 ```
 ## 核心原理简述
-主要是利用Android的Looper机制（进行偷梁换柱）。
+主要是利用Android的Looper机制（进行移花接木）。
 ![](https://github.com/Liaoboo/AppCrashMonitor/blob/main/img_folder/img1.jpeg)
 
 ## 拦截后处理
